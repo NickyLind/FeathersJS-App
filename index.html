@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello Feathers</title>
+  <link rel="stylesheet" href="//cdn.rawgit.com/feathersjs/feathers-chat/v4.0.0/public/base.css">
+  <link rel="stylesheet" href="//cdn.rawgit.com/feathersjs/feathers-chat/v4.0.0/public/chat.css">
+</head>
+<body>
+  <main id="main" class="container">
+    <h1>Welcome to Feathers</h1>
+    <form class="form" onsubmit="sendMessage(event.preventDefault())">
+      <input type="text" id="message-text" placeholder="Enter Message Here">
+      <button type="submit" class="button button-primary">Send Message</button>
+    </form>
+    <h2>Here are the Current Messages:</h2>
+
+  </main>
+  <script src="//unpkg.com/@feathersjs/client@^4.3.0/dist/feathers.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const app = feathers();
+
+    app.configure(feathers.socketio(socket)); // client is now socket-enabled so it can communicate with the back-end over sockets
+
+    async function sendMessage() {
+      const messageInput = document.getElementById('message-text');
+      await app.service('messages').create({
+        text: messageInput.value
+      });
+      messageInput.value = '';
+    }
+
+    function addMessage(message) {
+      const messageElement = document.createElement('p');
+      messageElement.textContent = message.text;
+      document.getElementById('main').appendChild(messageElement);
+      console.log(messageElement);
+    }
+
+    const main = async () => {
+      const messages = await app.service('messages').find();
+      messages.forEach(addMessage);
+
+      app.service('messages').on('created', addMessage);
+    }
+
+    main();
+  </script>
+</body>
+</html>
